@@ -20,6 +20,7 @@
             <tr><td>2</td><td><a href="http://drugcombdb.denglab.org/download/Syner&Antag_bliss.csv" download="Syner&Antag_bliss.csv">Syner&Antag_bliss.csv</a></td><td>Drug combinations classified by BLISS score </td><td>2019.05.31</td></tr>
             <tr><td>3</td><td><a href="http://drugcombdb.denglab.org/download/yner&Antag_loewe.csv" download="yner&Antag_loewe.csv">Syner&Antag_loewe.csv</a></td><td>Drug combinations classified by LOEWE score </td><td>2019.05.31</td></tr>
             <tr><td>4</td><td><a href="http://drugcombdb.denglab.org/download/Syner&Antag_hsa.csv" download="Syner&Antag_hsa.csv">Syner&Antag_hsa.csv</a></td><td>Drug combinations classified by HSA score </td><td>2019.05.31</td></tr>
+            <tr><td>5</td><td><a href="http://drugcombdb.denglab.org/download/Syner&Antag_synthetic.csv" download="Syner&Antag_synthetic.csv">Syner&Antag_synthetic.csv</a></td><td>Drug combinations classified by SYNTHETIC score </td><td>2019.05.31</td></tr>
           </table>
           <p class="title">One category dataset (synergism) </p>
           <div class="all-dataset">

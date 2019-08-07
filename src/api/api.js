@@ -11,12 +11,13 @@ export const getDrugCombPagination = (page, size) => {
   })
 }
 
-export const getDrugIntegrationPages = (page, size, checkedNames) => { // 在这里把page和size都传了进去
+export const getDrugIntegrationPages = (page, size, checkedNames, checkedTissue) => { // 在这里把page和size都传了进去
   return axios.get(`/integration/list`, {
     params: {
       page,
       size,
-      checkedNames
+      checkedNames,
+      checkedTissue
     }
   })
 }
@@ -58,6 +59,24 @@ export const getCellLineInfoByBlockId = (blockId) => {
   })
 }
 
+export const getInfoByBlockId = (blockId) => {
+  return axios.get(`/cellLine/blockId`, {
+    params: {
+      blockId
+    }
+  })
+}
+
+export const getFittedInfoByBlockId = (page, size, blockId) => {
+  return axios.get(`/cellLine/FittedInfo`, {
+    params: {
+      page,
+      size,
+      blockId
+    }
+  })
+}
+
 export const getRecommendDrugIntegrationList = () => {
   return axios.get(`/integration/recommends`)
 }
@@ -74,19 +93,20 @@ export const getDrugNameCellName = (drugName) => {
   })
 }
 
-export const searchDrugCombinationByCombinationName = (combination, page, size, checkedNames) => {
+export const searchDrugCombinationByCombinationName = (combination, page, size, checkedNames, checkedTissue) => {
   return axios.get(`/integration/search`, {
     params: {
       combination,
       page,
       size,
-      checkedNames
+      checkedNames,
+      checkedTissue
     }
   })
 }
 
-export const searchDrugPages = (drugName, page, size, checkedNames) => {
-  return axios.get(`/integration/search/${encodeURIComponent(drugName)}?page=${page}&size=${size}&checkedNames=${checkedNames}`)
+export const searchDrugPages = (drugName, page, size, checkedNames, checkedTissue) => {
+  return axios.get(`/integration/search/${encodeURIComponent(drugName)}?page=${page}&size=${size}&checkedNames=${checkedNames}&checkedTissue=${checkedTissue}`)
 }
 
 export const getDrugProteinLinksInformation = drugId => {
@@ -111,6 +131,15 @@ export const getDrugProteinLinksPages = (drugId, page, size) => {
     params: {
       page,
       size
+    }
+  })
+}
+
+export const getDrugDescriptionByDrugName = (drugName) => {
+  return axios.get(`/combination/description`, {
+    timeout: 30000,
+    params: {
+      drugName
     }
   })
 }

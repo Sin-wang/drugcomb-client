@@ -13,7 +13,11 @@
           <div class="response-matrix" v-else>
             <MultiRect  :data="tableData"/>
             <div class="drug-info-container">
-              <p class="title">
+              <p class="title">Description of {{this.tableData[0].drugRowName}}</p>
+              <p>{{this.drugInfoList[0]}}</p>
+              <p class="title">Description of {{this.tableData[0].drugColName}}</p>
+              <p>{{this.drugInfoList[1]}}</p>
+              <!--<p class="title">
                 Agents
               </p>
               <table v-if="drugInfoList.length">
@@ -33,7 +37,7 @@
                     </a>
                   </td>
                 </tr>
-              </table>
+              </table>-->
             </div>
           </div>
         </div>
@@ -43,7 +47,7 @@
 
 <script>
 import HeaderTitle from '../../components/Header/HeaderTitle'
-import {getIndividualDrugCombinationByBlockId, getDrugInfoByDrugName} from '../../api/api'
+import {getIndividualDrugCombinationByBlockId, getDrugDescriptionByDrugName} from '../../api/api'
 import SimpleTable from '../../components/Table/SimpleTable'
 import MultiRect from '../../components/Visualization/Multi-Rect'
 export default {
@@ -62,8 +66,15 @@ export default {
       this.tableData = data
       return data
     }).then(data => {
-      Promise.all([getDrugInfoByDrugName(data[0].drugRowName), getDrugInfoByDrugName(data[0].drugColName)]).then(data => {
+      Promise.all([getDrugDescriptionByDrugName(data[0].drugRowName), getDrugDescriptionByDrugName(data[0].drugColName)]).then(data => {
+        console.log('这两个name以及获得的描述为：')
         this.drugInfoList = data
+        if (this.drugInfoList[0] === null) {
+          this.drugInfoList[0] = 'None'
+        }
+        if (this.drugInfoList[1] === null) {
+          this.drugInfoList[1] = 'None'
+        }
       })
     })
   }
@@ -134,18 +145,35 @@ export default {
           width: calc(100% - 520px);
           padding: 10px;
           transition: all 0.3s;
+          .title{
+           font-size: 24px;
+           font-weight: 300;
+           padding: 10px 0;
+            border-bottom: 1px solid #eee;
+          }
+          .legend{
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            img{
+              width: 100px;
+              height: 50px;
+              object-fit: contain;
+              transform: scale(0.5);
+            }
+          }
 /*          &:hover{
             box-shadow: 0 30px 30px -10px rgba(33,71,109,0.3), 0 0 20px -2px rgba(15,81,148,0.2);
           }*/
 
-          .title{
+          /*.title{
             padding: 10px 0 20px;
             font-size: 24px;
           }
           table{
             width: 100%;
             padding: 8px;
-            /*font-family: Consolas,Menlo,Courier,monospace;*/
+            !*font-family: Consolas,Menlo,Courier,monospace;*!
             font-size: 12px;
             border-collapse: collapse;
             border-spacing: 0;
@@ -178,7 +206,7 @@ export default {
                 padding: 8px;
                 text-align: left;
             }
-          }
+          }*/
         }
       }
     }

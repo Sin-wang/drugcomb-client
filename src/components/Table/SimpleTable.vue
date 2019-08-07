@@ -3,7 +3,7 @@
     <tr>
       <th v-for="(item, index) in header" :key="index">
         <div class="title-container" @click="sortData(item, typeof body[0][item] === 'number')">
-          <span>{{item}}</span>
+          <span>{{item}}</span> <!--表头的名称-->
           <img v-if="typeof body[0][item] === 'number'" src="../../assets/icon/sort.png"  alt="">
         </div>
       </th>

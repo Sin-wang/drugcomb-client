@@ -74,14 +74,37 @@
       </defs>
     </svg>
     <div class="legend-container">
-      <p class="title">Description</p>
-      <p>{{drugDescription}}</p>
+      <!--<p class="title">Description</p>
+      <p>{{cid1}}</p>
       <p class="title">introduce</p>
       <ul class="line">
         <li>
-          In this introduc: {{molecularWeight}}
+          In this introduc: {{cid2}}
         </li>
-      </ul>
+      </ul>-->
+      <div class="drug-info-container">
+        <p class="title">
+          Agents
+        </p>
+        <table v-if="drugInfoList.length">
+          <tr><th>Pubchem ID</th><td><a target="_blank" :href="'https://pubchem.ncbi.nlm.nih.gov/compound/'+ drugInfoList[0].cIds">{{drugInfoList[0].cIds}}</a></td><td><a target="_blank" :href="'https://pubchem.ncbi.nlm.nih.gov/compound/'+ drugInfoList[1].cIds">{{drugInfoList[1].cIds}}</a></td></tr>
+          <tr><th>Drug Name</th><td>{{drugInfoList[0].drugName}}</td><td>{{drugInfoList[1].drugName}}</td></tr>
+          <tr><th>Official Name</th><td>{{drugInfoList[0].drugNameOfficial}}</td><td>{{drugInfoList[1].drugNameOfficial}}</td></tr>
+          <tr><th>Structure</th><td><img :src="drugInfoList[0].originImgUrl" alt="ChemicalStructure"/></td><td><img :src="drugInfoList[1].originImgUrl" alt="ChemicalStructure"/></td></tr>
+          <tr><th>Molecular Weight</th><td>{{drugInfoList[0].molecularWeight}}</td><td>{{drugInfoList[1].molecularWeight}}</td></tr>
+          <tr><th>Smiles String</th><td>{{drugInfoList[0].smilesString}}</td><td>{{drugInfoList[1].smilesString}}</td></tr>
+          <tr><th>Relative</th>
+            <td colspan="2">
+              <a class="pubchem" href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank">
+                <img src="../../assets/pubchem.png" alt=""/>
+              </a>
+              <a class="stitch" target="_blank" href="http://stitch.embl.de/cgi/input.pl?UserId=T1zxeKQ17paY&sessionId=lqPqezatuxhA">
+                <img src="../../assets/stitch.png" alt=""/>
+              </a>
+            </td>
+          </tr>
+        </table>
+      </div>
     </div>
   </div>
 </template>
@@ -89,6 +112,7 @@
 <script>
 import {charts} from '../../mixins/charts'
 import * as d3 from 'd3'
+import {getDrugInfoByDrugName} from '../../api/api'
 export default {
   name: 'CombDrugProteinNetworks',
   mixins: [charts],
@@ -96,13 +120,10 @@ export default {
     drugProteinLinks: {
       type: Object
     },
-    drugDescription: {
+    cid1: {
       type: String
     },
-    molecularWeight: {
-      type: String
-    },
-    smilesString: {
+    cid2: {
       type: String
     }
   },
@@ -198,6 +219,11 @@ export default {
           .attr('y', this.drugProteinLinks.nodes[1].y + 30)
       })
       simulation.force('link').links(graph.links)
+      Promise.all([getDrugInfoByDrugName(this.drugName[0]), getDrugInfoByDrugName(this.drugName[1])]).then(data => {
+        console.log('这两个drugname的信息为：')
+        this.drugInfoList = data
+        console.log(this.drugInfoList)
+      })
     },
     generateCircle (g, radius = this.radius) {
       g.append('ellipse')
@@ -306,7 +332,8 @@ export default {
   data () {
     return {
       radius: 20,
-      drugName: []
+      drugName: [],
+      drugInfoList: []
     }
   },
   computed: {
@@ -331,7 +358,57 @@ export default {
     .legend-container{
       width: calc(100% - 510px);
       padding: 10px;
-      .title{
+      .drug-info-container{
+        width: calc(100% - 520px);
+        padding: 10px;
+        transition: all 0.3s;
+        /*          &:hover{
+                    box-shadow: 0 30px 30px -10px rgba(33,71,109,0.3), 0 0 20px -2px rgba(15,81,148,0.2);
+                  }*/
+
+        .title{
+          padding: 10px 0 20px;
+          font-size: 24px;
+        }
+        table{
+          width: 100%;
+          padding: 8px;
+          /*font-family: Consolas,Menlo,Courier,monospace;*/
+          font-size: 12px;
+          border-collapse: collapse;
+          border-spacing: 0;
+          empty-cells: show;
+          margin-bottom: 24px;
+          tr{
+
+          }
+          td{
+            word-wrap:break-word;
+            word-break:break-all;
+            img{
+              width: 200px;
+              object-fit: contain;
+            }
+            a{
+              color: @theme-color;
+              &:hover{
+                text-decoration: underline;
+              }
+              img{
+                width: 60px;
+                height: 25px;
+                object-fit: contain;
+              }
+            }
+          }
+          th,td{
+            border: 1px solid rgba(33,71,109,0.3);
+            padding: 8px;
+            text-align: left;
+          }
+        }
+      }
+      /*.title{
         font-size: 24px;
         font-weight: 300;
         padding: 10px 0;
@@ -347,7 +424,7 @@ export default {
           object-fit: contain;
           transform: scale(0.5);
         }
-      }
+      }*/
     }
   }
 </style>

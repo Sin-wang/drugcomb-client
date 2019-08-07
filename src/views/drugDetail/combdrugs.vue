@@ -7,7 +7,7 @@
         </HeaderTitle>
         <div class="drug-info">
           <template v-if="drugProteinLinks && drugProteinLinks.links.length">
-            <CombDrugProteinNetworks :width="450" :height="410" :drugProteinLinks="drugProteinLinks" :smiles-string="drugInfo.smilesString" :molecular-weight="drugInfo.molecularWeight" :drug-description="drugDescription"/>
+            <CombDrugProteinNetworks :width="450" :height="410" :drugProteinLinks="drugProteinLinks" :cid1="this.drugInfo[0]" :cid2="this.drugInfo[1]" />
             <div v-if="drug_protein_table.length" style="padding: 8px 0;"><!--数据表格-->
               <p class="table-title">Common targets of {{combDrugName[0]}} and {{combDrugName[1]}}</p>
               <SimpleTable :header="Object.keys(drug_protein_table[0])" :body="drug_protein_table"/>
@@ -54,22 +54,18 @@ export default {
         getDrugInfoByDrugNames(this.combdurgsName[0], this.combdurgsName[1]).then(data => { /* 根据两个name来找两个cid */
           this.drugInfo = data
           console.log('两个cids')
-          console.log(this.drugInfo)
           return data
         }).then(data => {
           getCombDrugProteinLinksInformation(data[0], data[1]).then(data => {
             console.log('getCombDrugProteinLinksInformation:')
-            console.log(data)
-            this.drugProteinLinks = data // 尝试传入两个药物ID进去
+            this.drugProteinLinks = data // 传入两个药物ID进去
           })
           getDrugInfoExtraByDrugId(this.drugInfo[0]).then(data => { /* 在drug_chemical_info_extra根据CID，只要了Indication和Pharmacodynamics */
             console.log('getDrugInfoExtraByDrugId:')
-            console.log(data)
             this.drugInfoExtra = data
           })
           getDrugInfoDescriptionByDrugId(this.drugInfo[0]).then(data => {
             console.log('getDrugInfoDescriptionByDrugId')
-            console.log(data)
             this.drugDescription = data.description
           })
           this.updateTableData()
@@ -90,7 +86,6 @@ export default {
           })
           this.total = data.total
           console.log('getCombDrugProteinLinksPages:')
-          console.log(this.drug_protein_table)
         })
       } else {
         this.$message({

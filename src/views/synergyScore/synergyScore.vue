@@ -27,16 +27,36 @@
           <div style="padding: 10px;" class="filter" v-if="CellName.length">
             <span class="filter-tag">Filter by tissue: </span>
             <div class="filter-area">
-              <div v-if="!isCollapse" class="filter-list">
-                <label class="checkbox" v-for="(item, index) in CellName" :key="index"><input type="checkbox" :value="item" v-model="checkedNames"/>{{item}}</label>
+              <div v-if="isCollapse" class="filter-list">
+                <label class="checkbox" v-for="(item, index) in CellName" :key="index" ><input type="checkbox" :value="item" v-model="checkedNames" />{{item.tissue}}
+                </label>
+                <button class="toggle-collapse" v-if="checkedNames.length" href="" @click.prevent="checkedNames = [] ,ckeckedCellNames = []">reset</button>
               </div>
-              <a class="toggle-collapse" v-if="checkedNames.length" href="" @click.prevent="checkedNames = []">reset</a>
-              <a class="toggle-collapse" href="" @click.prevent="isCollapse = !isCollapse">{{isCollapse? 'open' : 'collapse'}}</a>
+              <div class="filter-area">
+              <!--<button class="toggle-collapse" href="" @click.prevent="isCollapse = !isCollapse">{{isCollapse? 'collapse' : 'open'}}</button>-->
+              </div>
             </div>
           </div>
-          <!-- 在这里写一个button 调用到search函数 -->
+          <div style="padding: 10px;" class="filter" v-if="checkedNames.length">
+            <span class="filter-tag">Filter by cellLine: </span>
+            <div class="filter-area">
+              <div v-if="isCollapse" class="filter-list">
+                <label class="" v-for="(item, index) in checkedNames"  :key="index">
+                  <label class="checkbox" v-for="(n,i) in item.cellName" :key="i">
+                    <input type="checkbox" :value="n" v-model="checkedCellNames" />{{n}}
+                  </label>
+                </label>
+                <button class="toggle-collapse" v-if="checkedNames.length" href="" @click.prevent="checkedCellNames = []">reset</button>
+              </div>
+              <div class="filter-area">
+<!--
+                <button class="toggle-collapse" v-if="checkedNames.length" href="" @click.prevent="checkedCellNames = []">reset</button>
+-->
+              </div>
+            </div>
+          </div>
           <template v-if="tableData.length">
-            <SimpleTable :header="Object.keys(tableData[0])" :body="tableData" :linkIndexList="[1,2,3,5,6]" @itemClicked="handleItemClicked"/>
+            <SimpleTable :header="Object.keys(tableData[0])" :body="tableData" :linkIndexList="[1,2,3,4,5,6]" @itemClicked="handleItemClicked"/>
             <Page show-elevator show-total  @pageClick="handleChangePage" :total="total" :current="pageNum" :page-size="pageSize" @changePage="handleChangePage" @pageSizeChange="handlePageSizeChange"/>
             <div class="table-tips">
               <HeaderTitle>
@@ -58,11 +78,11 @@
         </div>
       </div>
     </section>
-    <Dialog v-if="showResponseMatrix" @closeDialog="showResponseMatrix = false">
+    <Dialog v-if="showResponseMatrix" @closeDialog="showResponseMatrix = false"> <!--这个就是关闭的动态-->
       <Response :blockId="blockId"/>
     </Dialog>
     <Dialog v-if="showCellLineDialog" @closeDialog="showCellLineDialog = false">
-        <CellLine/>
+        <CellLine :checkedCellName="checkedCellName" :blockId="blockId"/>
     </Dialog>
   </FullPage>
 </template>
@@ -90,7 +110,7 @@ export default {
         this.pageNum = 1
         this.tips = [] // close tips
         this.checkedNames = []
-        this.updateTableData()
+        this.checkedCellNames = []
       }
     },
     handleInput (keyword) { // 输入变化就会调用到此函数
@@ -109,17 +129,16 @@ export default {
       }
       console.log('进入后台')
       console.log(keyword)
-      var tempCellNames4 = this.checkedNames.join("','")
-      searchDrugPages(keyword, 1, 100, tempCellNames4).then(data => {
+      this.filterTissue(this.checkedNames)
+      var tempTissue4 = this.checkedTissue.join("','")
+      var tempCellNames4 = this.checkedCellNames.join("','")
+      searchDrugPages(keyword, 1, 100, tempCellNames4, tempTissue4).then(data => {
         if (data.total) {
           this.tips = data.page.map(item => item.drugCombination)
         } else {
           this.$message('Can not find a drug containing this word.')
         }
       })
-    },
-    cleanCellName () {
-      this.checkedNames = []
     },
     handleItemClicked (col, key, obj) {
       switch (key.toLowerCase()) {
@@ -132,6 +151,8 @@ export default {
           window.open(`/drugDetail?drugName=${encodeURIComponent(col.trim())}`)
           break
         case 'cellname':
+          this.checkedCellName = col.trim()
+          this.blockId = obj.id
           this.showCellLineDialog = true
           break
         case 'synergyscore':
@@ -145,14 +166,25 @@ export default {
           break
       }
     },
+    filterTissue (al) {
+      console.log('进来了filter')
+      this.checkedTissue = []
+      for (var i in al) {
+        this.checkedTissue[i] = al[i].tissue
+      }
+      console.log(this.checkedTissue)
+    },
     updateTableData () {
       if (this.keyword === '') { // 为空时，get到所有的
         console.log('为空')
-        var tempCellNames1 = this.checkedNames.join("','")
-        getDrugIntegrationPages(this.pageNum, this.pageSize, tempCellNames1).then(data => { // 将获得到的数据放入data中保存
+        this.filterTissue(this.checkedNames)
+        var tempTissue1 = this.checkedTissue.join("','")
+        var tempCellNames1 = this.checkedCellNames.join("','")
+        getDrugIntegrationPages(this.pageNum, this.pageSize, tempCellNames1, tempTissue1).then(data => { // 将获得到的数据放入data中保存
           if (data.total) {
             this.tableData = data.page
             this.total = data.total
+            console.log(data)
           } else {
             this.$message('Not Found')
           }
@@ -163,8 +195,10 @@ export default {
         if (this.keyword.split(' - ').length > 1) {
           console.log('两个药物')
           console.log(this.checkedNames)
-          var tempCellNames2 = this.checkedNames.join("','")
-          searchDrugCombinationByCombinationName(this.keyword, this.pageNum, this.pageSize, tempCellNames2).then(data => {
+          this.filterTissue(this.checkedNames)
+          var tempTissue2 = this.checkedTissue.join("','")
+          var tempCellNames2 = this.checkedCellNames.join("','")
+          searchDrugCombinationByCombinationName(this.keyword, this.pageNum, this.pageSize, tempCellNames2, tempTissue2).then(data => {
             console.log('进来了两个药物')
             if (data.total) {
               this.tableData = data.page
@@ -175,8 +209,10 @@ export default {
           })
         } else {
           console.log('一个药物')
-          var tempCellNames3 = this.checkedNames.join("','")
-          searchDrugPages(this.keyword, this.pageNum, this.pageSize, tempCellNames3).then(data => {
+          this.filterTissue(this.checkedNames)
+          var tempTissue3 = this.checkedTissue.join("','")
+          var tempCellNames3 = this.checkedCellNames.join("','")
+          searchDrugPages(this.keyword, this.pageNum, this.pageSize, tempCellNames3, tempTissue3).then(data => {
             if (data.total) {
               this.tableData = data.page
               this.total = data.total
@@ -196,7 +232,6 @@ export default {
         getAllcellName().then(data => {
           if (data) {
             this.CellName = data
-            console.log(this.CellName)
           } else {
             this.$message('Not Found')
           }
@@ -206,7 +241,6 @@ export default {
         getDrugNameCellName(keyword).then(data => {
           if (data) {
             this.CellName = data
-            console.log(this.CellName)
           } else {
             this.$message('Not Found')
           }
@@ -234,6 +268,7 @@ export default {
   },
   data () {
     return {
+      checkedCellName: '',
       tables: [],
       tableData: [],
       CellName: [],
@@ -243,6 +278,8 @@ export default {
       keyword: '',
       blockId: -1,
       checkedNames: [],
+      checkedCellNames: [],
+      checkedTissue: [],
       showResponseMatrix: false,
       showCellLineDialog: false,
       tips: [], // search tips,
@@ -257,6 +294,9 @@ export default {
       this.updateTableData()
     },
     checkedNames () {
+      this.updateTableData()
+    },
+    checkedCellNames () {
       this.updateTableData()
     }
   }
@@ -292,7 +332,7 @@ export default {
         display: flex;
         .filter-tag{
           height: 30px;
-          width: 110px;
+          width: 120px;
           flex-shrink: 0;
           display: flex;
           align-items: center;
@@ -300,13 +340,18 @@ export default {
         .filter-area{
           margin-left: 10px;
           .filter-list{
-            max-height: 150px;
+            border: 1px;
+            border-style: groove;
+            border-color: @input-focus-color;
+            solid-color: @input-focus-color;
+            max-height: 400px;
+            max-width: 850px;
             overflow-y: auto;
             display: flex;
             justify-content: flex-start;
             flex-wrap: wrap;
             .checkbox{
-              height: 30px;
+              height: 40px;
               display: inline-flex;
               align-items: center;
               margin: 5px 8px;
@@ -316,8 +361,9 @@ export default {
             }
           }
           .toggle-collapse{
+            background-color: @input-focus-color;
             height: 30px;
-            margin: 0 8px;
+            margin: 5px 3px;
             display: inline-flex;
             align-items: center;
           }
